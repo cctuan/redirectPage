@@ -37,6 +37,17 @@
             return decodeURIComponent(results[2].replace(/\+/g, ' '));
         }
 
+        let pageVisible = true;
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                console.log("LIFF 页面现在在后台");
+                pageVisible = false;
+            } else {
+                console.log("LIFF 页面现在在前台");
+                pageVisible = true;
+            }
+        });
+        
         document.addEventListener('DOMContentLoaded', function() {
             liff.init({ liffId: "2006303984-8XAKA4do" }).then(() => {
                 var callnumber = getParameterByName('callnumber');
@@ -47,6 +58,10 @@
                     var windowReference = window.open(lineUrl, '_blank');
                     
                     setTimeout(function() {
+                        if (!pageVisible) {
+                            liff.closeWindow();
+                            return
+                        }
                         if (!document.hidden) {
                             if (redirectUrl) {
                                 window.location.href = redirectUrl;
