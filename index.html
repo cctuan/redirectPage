@@ -36,9 +36,19 @@
             return decodeURIComponent(results[2].replace(/\+/g, ' '));
         }
 
+        function parseState(stateParam) {
+            if (!stateParam) return {};
+            const decodedState = decodeURIComponent(stateParam);
+            const params = new URLSearchParams(decodedState);
+            return {
+                callnumber: params.get('callnumber'),
+                redirectUrl: params.get('redirectUrl')
+            };
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
-            var callnumber = getParameterByName('callnumber');
-            var redirectUrl = getParameterByName('redirectUrl');
+            var stateParam = getParameterByName('liff.state');
+            var { callnumber, redirectUrl } = parseState(stateParam);
             
             if (callnumber) {
                 var lineUrl = 'line://lc/' + callnumber;
@@ -49,12 +59,12 @@
                         if (redirectUrl) {
                             window.location.href = redirectUrl;
                         } else {
-                            document.getElementById('message').textContent = '請提供 redirectUrl';
+                            document.getElementById('message').textContent = '没有提供重定向 URL。';
                         }
                     }
                 }, 2000);
             } else {
-                document.getElementById('message').textContent = '為提供 call number';
+                document.getElementById('message').textContent = '未提供 callnumber 参数。';
             }
         });
     </script>
