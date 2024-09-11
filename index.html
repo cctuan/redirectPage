@@ -47,14 +47,14 @@
                     var windowReference = window.open(lineUrl, '_blank');
                     
                     setTimeout(function() {
-                        if (!windowReference || windowReference.closed || typeof windowReference.closed == 'undefined') {
+                        if (!document.hidden) {
                             if (redirectUrl) {
                                 window.location.href = redirectUrl;
                             } else {
-                                document.getElementById('message').textContent = '也没有提供重定向 URL。';
+                                document.getElementById('message').textContent = '无法打开 LINE，也没有提供重定向 URL。';
                             }
                         } else {
-                            // 如果成功打开 LINE，关闭当前窗口
+                            // 如果页面不可见，假设 LINE 已经成功打开
                             liff.closeWindow();
                         }
                     }, 2000);
