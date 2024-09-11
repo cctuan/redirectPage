@@ -26,6 +26,7 @@
 <body>
     <div id="message">正在重定向，请稍候...</div>
 
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
         function getParameterByName(name, url = window.location.href) {
             name = name.replace(/[\[\]]/g, '\\$&');
@@ -36,36 +37,34 @@
             return decodeURIComponent(results[2].replace(/\+/g, ' '));
         }
 
-        function parseState(stateParam) {
-            if (!stateParam) return {};
-            const decodedState = decodeURIComponent(stateParam);
-            const params = new URLSearchParams(decodedState);
-            return {
-                callnumber: params.get('callnumber'),
-                redirectUrl: params.get('redirectUrl')
-            };
-        }
-
         document.addEventListener('DOMContentLoaded', function() {
-            var stateParam = getParameterByName('liff.state');
-            var { callnumber, redirectUrl } = parseState(stateParam);
-            
-            if (callnumber) {
-                var lineUrl = 'line://lc/' + callnumber;
-                var windowReference = window.open(lineUrl, '_blank');
+            liff.init({ liffId: "2006303984-8XAKA4do" }).then(() => {
+                var callnumber = getParameterByName('callnumber');
+                var redirectUrl = getParameterByName('redirectUrl');
                 
-                setTimeout(function() {
-                    if (!windowReference || windowReference.closed || typeof windowReference.closed == 'undefined') {
-                        if (redirectUrl) {
-                            window.location.href = redirectUrl;
+                if (callnumber) {
+                    var lineUrl = 'line://lc/' + callnumber;
+                    var windowReference = window.open(lineUrl, '_blank');
+                    
+                    setTimeout(function() {
+                        if (!windowReference || windowReference.closed || typeof windowReference.closed == 'undefined') {
+                            if (redirectUrl) {
+                                window.location.href = redirectUrl;
+                            } else {
+                                document.getElementById('message').textContent = '也没有提供重定向 URL。';
+                            }
                         } else {
-                            document.getElementById('message').textContent = '没有提供重定向 URL。';
+                            // 如果成功打开 LINE，关闭当前窗口
+                            liff.closeWindow();
                         }
-                    }
-                }, 2000);
-            } else {
-                document.getElementById('message').textContent = '未提供 callnumber 参数。';
-            }
+                    }, 2000);
+                } else {
+                    document.getElementById('message').textContent = '未提供 callnumber 参数。';
+                }
+            }).catch((error) => {
+                console.log("LIFF initialization failed", error);
+                document.getElementById('message').textContent = 'LIFF 初始化失败，请稍后再试。';
+            });
         });
     </script>
 </body>
