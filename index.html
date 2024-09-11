@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LINE Redirect</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #message {
+            text-align: center;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div id="message">正在重定向，请稍候...</div>
+
+    <script>
+        function getParameterByName(name, url = window.location.href) {
+            name = name.replace(/[\[\]]/g, '\\$&');
+            var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var callnumber = getParameterByName('callnumber');
+            var redirectUrl = getParameterByName('redirectUrl');
+            
+            if (callnumber) {
+                var lineUrl = 'line://lc/' + callnumber;
+                var windowReference = window.open(lineUrl, '_blank');
+                
+                setTimeout(function() {
+                    if (!windowReference || windowReference.closed || typeof windowReference.closed == 'undefined') {
+                        if (redirectUrl) {
+                            window.location.href = redirectUrl;
+                        } else {
+                            document.getElementById('message').textContent = '請提供 redirectUrl';
+                        }
+                    }
+                }, 2000);
+            } else {
+                document.getElementById('message').textContent = '為提供 call number';
+            }
+        });
+    </script>
+</body>
+</html>
