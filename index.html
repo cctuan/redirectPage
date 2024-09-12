@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LINE call轉導頁面</title>
+    <title>LINE轉導頁面</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
@@ -20,21 +21,42 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        #openLineButton {
+            background-color: #00B900;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #openLineButton:hover {
+            background-color: #009900;
         }
     </style>
 </head>
 <body>
     <div id="qrcode"></div>
+    <button id="openLineButton">Call</button>
 
     <script>
         // 从URL获取callnumber参数
         const urlParams = new URLSearchParams(window.location.search);
         const callnumber = urlParams.get('callnumber');
 
-        // 如果存在callnumber，则打开Line应用
+        function openLineApp() {
+            if (callnumber) {
+                const lineUrl = `line://lc/${callnumber}`;
+                window.open(lineUrl, '_blank');
+            }
+        }
+
+        // 如果存在callnumber，则生成QR码并设置按钮功能
         if (callnumber) {
             const lineUrl = `line://lc/${callnumber}`;
-            window.open(lineUrl, '_blank');
 
             // 生成QR码
             new QRCode(document.getElementById("qrcode"), {
@@ -42,6 +64,12 @@
                 width: 256,
                 height: 256
             });
+
+            // 设置按钮点击事件
+            document.getElementById('openLineButton').addEventListener('click', openLineApp);
+
+            // 尝试自动打开Line应用
+            openLineApp();
         } else {
             document.body.innerHTML = '缺少必要的callnumber参数';
         }
