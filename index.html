@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LINE Redirect</title>
+    <title>打开Line应用</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -14,42 +15,36 @@
             margin: 0;
             background-color: #f0f0f0;
         }
-        #message {
-            text-align: center;
-            padding: 20px;
+        #qrcode {
             background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
     </style>
 </head>
 <body>
-    <div id="message">這是留下來的主要頁面</div>
+    <div id="qrcode"></div>
 
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
-        function getParameterByName(name, url = window.location.href) {
-            name = name.replace(/[\[\]]/g, '\\$&');
-            var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
-                results = regex.exec(url);
-            if (!results) return null;
-            if (!results[2]) return '';
-            return decodeURIComponent(results[2].replace(/\+/g, ' '));
-        }
+        // 从URL获取callnumber参数
+        const urlParams = new URLSearchParams(window.location.search);
+        const callnumber = urlParams.get('callnumber');
 
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            liff.init({ liffId: "2006303984-8XAKA4do" }).then(() => {
-                var callnumber = getParameterByName('callnumber');
-                if (callnumber) {
-                    var lineUrl = 'line://lc/' + callnumber;
-                    var windowReference = window.open(lineUrl, '_blank');
-                }
-            }).catch((error) => {
-                console.log("LIFF initialization failed", error);
-                document.getElementById('message').textContent = 'LIFF 初始化失败，请稍后再试。';
+        // 如果存在callnumber，则打开Line应用
+        if (callnumber) {
+            const lineUrl = `line://lc/${callnumber}`;
+            window.open(lineUrl, '_blank');
+
+            // 生成QR码
+            new QRCode(document.getElementById("qrcode"), {
+                text: lineUrl,
+                width: 256,
+                height: 256
             });
-        });
+        } else {
+            document.body.innerHTML = '缺少必要的callnumber参数';
+        }
     </script>
 </body>
 </html>
