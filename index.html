@@ -40,7 +40,6 @@
 </head>
 <body>
     <div id="qrcode"></div>
-    <button id="openLineButton">Call</button>
 
     <script>
         // 从URL获取callnumber参数
@@ -65,11 +64,9 @@
                 height: 256
             });
 
-            // 设置按钮点击事件
-            document.getElementById('openLineButton').addEventListener('click', openLineApp);
-
-            // 尝试自动打开Line应用
-            openLineApp();
+            setTimeout(() => {            // 尝试自动打开Line应用
+                openLineApp();
+            }, 1000);
         } else {
             document.body.innerHTML = '缺少必要的callnumber参数';
         }
