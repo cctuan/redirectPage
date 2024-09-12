@@ -23,40 +23,77 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             margin-bottom: 20px;
         }
-        #openLineButton {
-            background-color: #00B900;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        #openLineButton:hover {
-            background-color: #009900;
-        }
     </style>
 </head>
 <body>
     <div id="qrcode"></div>
-
+    <p id="message">正在嘗試打開，若沒有請掃描QR Code</p>
     <script>
-        // 从URL获取callnumber参数
-        const urlParams = new URLSearchParams(window.location.search);
-        const callnumber = urlParams.get('callnumber');
+    (function(window) {
+        var intervalId,
+            userAgent = navigator.userAgent.toLowerCase(),
+            timeoutDuration = 1000,
+            intervalDuration = 500;
 
-        function openLineApp() {
-            if (callnumber) {
-                const lineUrl = `line://lc/${callnumber}`;
-                window.open(lineUrl, '_blank');
+        function isLineApp() {
+            return /line\/[0-9]*?\.[0-9]*?\.[0-9]*?$/.test(userAgent);
+        }
+
+        function isDesktop() {
+            return !!userAgent.match(/win(dows )?nt/) || 
+                   (userAgent.indexOf("macintosh") != -1 && !("ontouchend" in document));
+        }
+
+        function createHiddenIframe(url) {
+            var iframe = document.createElement("iframe");
+            iframe.src = url;
+            iframe.setAttribute("height", 0);
+            iframe.setAttribute("width", 0);
+            iframe.style.display = "none";
+            document.body.appendChild(iframe);
+        }
+
+        function handleAppLaunch(url) {
+            var deviceInfo = navigator.userAgent.toLowerCase();
+            if (deviceInfo.indexOf("iphone") != -1 || deviceInfo.indexOf("ipod") != -1 || deviceInfo.indexOf("ipad") != -1) {
+                if (url && !/#~/.test(location.hash)) {
+                    var iosVersion = deviceInfo.match(/os (\d+)/);
+                    if (!isLineApp() && iosVersion && iosVersion.length > 1 && 1 * iosVersion[1] < 9) {
+                        createHiddenIframe(url);
+                    } else {
+                        location.href = url;
+                    }
+                    location.hash = "~";
+                }
+
+                if (window.onhashchange) {
+                    window.onhashchange = function(event) {
+                        if (/#~/.test(event.oldURL)) history.back();
+                    };
+                } else {
+                    var oldHash = location.hash;
+                    intervalId = setInterval(function() {
+                        if (oldHash != location.hash && /#~/.test(oldHash)) {
+                            clearInterval(intervalId);
+                            history.back();
+                        }
+                    }, intervalDuration);
+                }
+            } else if (url && isDesktop()) {
+                createHiddenIframe(url);
+            } else {
+                location.href = url;
             }
         }
 
-        // 如果存在callnumber，则生成QR码并设置按钮功能
-        if (callnumber) {
-            const lineUrl = `line://lc/${callnumber}`;
+        // 从URL获取callnumber参数
+        var urlParams = new URLSearchParams(window.location.search);
+        var callnumber = urlParams.get('callnumber');
 
+        // 如果存在callnumber，则生成QR码并尝试打开LINE应用
+        if (callnumber) {
+            var lineUrl = "line://lc/" + callnumber;
+            
             // 生成QR码
             new QRCode(document.getElementById("qrcode"), {
                 text: lineUrl,
@@ -64,12 +101,14 @@
                 height: 256
             });
 
-            setTimeout(() => {            // 尝试自动打开Line应用
-                openLineApp();
-            }, 1000);
+            // 延迟一秒后尝试自动打开LINE应用
+            setTimeout(function() {
+                handleAppLaunch(lineUrl);
+            }, timeoutDuration);
         } else {
             document.body.innerHTML = '缺少必要的callnumber参数';
         }
+    })(window);
     </script>
 </body>
 </html>
